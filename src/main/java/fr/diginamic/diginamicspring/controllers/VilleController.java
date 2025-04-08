@@ -2,7 +2,11 @@ package fr.diginamic.diginamicspring.controllers;
 
 import fr.diginamic.diginamicspring.Ville;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -13,6 +17,7 @@ import java.util.Optional;
 @RequestMapping("/villes")
 public class VilleController {
     private final List<Ville> villes = new ArrayList<>();
+    private Validator validator;
 
     @PostConstruct
     public void init() {
@@ -29,9 +34,13 @@ public class VilleController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addVille(@RequestBody  Ville ville) {
+    public ResponseEntity<String> addVille(@Valid @RequestBody  Ville ville, BindingResult result) {
         boolean existe = listeVilles().stream()
                 .anyMatch(v -> v.getNom().equalsIgnoreCase(ville.getNom()));
+
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors().getFirst().getDefaultMessage());
+        }
 
         if (existe) {
             return ResponseEntity.badRequest().body("La ville existe déjà");
@@ -58,10 +67,16 @@ public class VilleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateVille(@PathVariable int id, @RequestBody Ville villeAModifier) {
+    public ResponseEntity<String> updateVille(@PathVariable int id, @Valid @RequestBody Ville villeAModifier) {
         Optional<Ville> villeExistante = listeVilles().stream()
                 .filter(v -> v.getId() == id)
                 .findFirst();
+
+        Errors result = validator.validateObject(villeAModifier);
+
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors().getFirst().getDefaultMessage());
+        }
 
         if (villeExistante.isEmpty()) {
             return ResponseEntity.badRequest().body("Ville non trouvée");
