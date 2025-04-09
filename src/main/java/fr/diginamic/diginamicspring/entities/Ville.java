@@ -1,13 +1,15 @@
-package fr.diginamic.diginamicspring;
+package fr.diginamic.diginamicspring.entities;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+@Entity
 public class Ville {
-
-    @Positive(message = "L'ID doit être strictement positif")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @NotNull
@@ -17,11 +19,17 @@ public class Ville {
     @Min(value = 1, message = "Le nombre d'habitants doit être supérieur ou égal à 1")
     private int nbHabitants;
 
-    public Ville (int id, String nom, int nbHabitants) {
+    @ManyToOne
+    private Departement departement;
+
+    public Ville(int id, String nom, int nbHabitants, Departement departement) {
         this.id = id;
         this.nom = nom;
         this.nbHabitants = nbHabitants;
+        this.departement = departement;
     }
+
+    public Ville () {}
 
     public int getId() {
         return id;
@@ -45,5 +53,13 @@ public class Ville {
 
     public void setNbHabitants(int nbHabitants) {
         this.nbHabitants = nbHabitants;
+    }
+
+    public Departement getDepartement() {
+        return departement;
+    }
+
+    public void setDepartement(Departement departement) {
+        this.departement = departement;
     }
 }
